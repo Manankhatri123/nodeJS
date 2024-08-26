@@ -1,0 +1,114 @@
+
+
+Step 1: The Project should be in local.
+Step 2: navigate to the project directory using vs code or any other tool.
+Step 3: go to dev.azure.com and create a project name it as  Youtube Clone
+Step 4: goto Repos and copy the command push the existing repository from command line.
+Step 5: git remote reomve origin , If the origin is already set .
+Step 6: then paste teh command from repos which was selected in step 4.
+Step 7: git push -u origin --all
+Step 8: Check the repo the code must be pushed there.
+
+create web ap
+Step 9: select app services
+Step 10: Select web App
+Step 11: select subsciption as default.
+Step 12: Create a resource group name it as day4_rg.
+Step 13: Git a name as TechTutorilsswithPiyush.
+Step 14: select run time stack as node 18lts.
+Step 15: Slect OS as linus.
+Step 16: select the region where the application need to be provisoned .
+Step 17: select pricing plan , If doing for the first time create new .
+Step 18: review and create .
+Step 19: go to resource
+Step 20: Browse and check the application.
+
+
+Pipeline Creation
+Step 21: Go to pipeline and select build pipeline.
+Step 22: create pipeline
+
+ First we will use CLassic Editor instead of YAml.
+
+
+Step 23: select Classic editor.
+Step 24:select source as azure repsoitory git.
+Step 25:select agent job 1 and clck on + symbol.
+Step 26:add task "npm" (For installation).
+Step 27:add npm again and select command as "custom" and command and arguments as "run build" (for build ).
+Step 28:add publish build artifacts , modify path to publish as build (for Publishing).
+Step 29:add azure web service deploy,select azure subscription for service connection  , authorize it and select , 
+app service name and select your web app from the drop down, package folder set it to $(BuildArtifactStagingDirectory)/build , select runtime stack as 1.0(STATICSITE|1.0).
+Step 30:click save and queue.
+Step 31: check build and see the logs.
+	Step1: Initialize the job.
+	Step 2: project checkout.
+	Step 3: npm Install.
+	Step 4: npm Build.
+	Step 5: publish artifact.
+	Step 6: azure app service deploy.
+	Step 7: check the url and see the web page 
+Step 32: clear cache to reflect the changes the web apps.
+Step 33: go to your web app and select setting on the left side and click configuration.
+Step 34: click on new application setting.
+Step 35: give the name as WEBSITE_DYNAMIC_CACHE and Value as 0 and enable Deployment slot setting.
+Step 36: create one more application setting 
+Step 37: name it as WEBSITE_DYNAMIC_CACHE_OPTION and set value as never and ebable Deployment slot setting.
+Step 38: save changes and hit continue.
+Step 39: restart the application.
+Step 40 : check the url now, if not able to see the output, have to run the pipeline again.
+	
+
+USING YAML
+Step 41: create a new pipeline and select azure repos git.
+Step 42: select your repository .
+Step 43: configure your pieline with template select starter pipeline.
+Step 44: review yaml file
+Step 45 : Create a yaml file.
+trigger: 
+- main
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Npm@1
+      inputs:
+        command: 'install'
+    - task: Npm@1
+      inputs:
+        command: 'custom'
+        customCommand: 'run build'
+
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'build'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+
+- stage: Deploy 
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: DownloadBuildArtifacts@1
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'drop'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Free Trial (9d23d68d-e383-4087-a0e6-a732ea1533ad)'
+          appType: 'webAppLinux'
+          WebAppName: 'TechTutorialsWithManan'
+          packageForLinux: '$(System.ArtifactsDirectory)/drop'
+          RuntimeStack: 'STATICSITE|1.0'
+        
+
